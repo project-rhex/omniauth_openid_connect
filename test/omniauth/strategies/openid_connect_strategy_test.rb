@@ -6,7 +6,7 @@ class OpenIDConnectStrategyTest < Test::Unit::TestCase
   
   def strategy
     # return the parameters to a Rack::Builder map call:
-    [OmniAuth::Strategies::OpenIDConnect,"localhost","my_id","my_s"]
+    [OmniAuth::Strategies::OpenIDConnect,"localhost","my_id","my_s",{client_options:{scheme:"https", port:nil}}]
   end
 
   def setup

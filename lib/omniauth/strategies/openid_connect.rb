@@ -14,7 +14,7 @@ module OmniAuth
       option :name, "openid_connect"
       option :client_id, nil
       option :client_secret, nil
-      option :client_options, {}
+      option :client_options, {scheme:"https", port:80}
       option :authorize_params, {}
       option :authorize_options, [:scope]
       option :token_params, {}
@@ -30,13 +30,13 @@ module OmniAuth
 
 
       def client_attributes
-        {identifier:options.client_id,
+        options.client_options.merge({identifier:options.client_id,
          secret:options.client_secret,
          host:options.host,
          user_info_endpoint:  options.user_info_endpoint,
          authorization_endpoint: options.authorization_endpoint, 
          token_endpoint:  options.token_endpoint, 
-         check_id_endpoint:  options.check_id_endpoint}
+         check_id_endpoint:  options.check_id_endpoint})
       end     
     
       
@@ -143,7 +143,7 @@ module OmniAuth
         access_token = client.access_token!
         id_token = check_id! access_token.id_token
         id_token.verify!(
-          issuer: "https://#{options.host}",
+          issuer: "#{options.client_options[:scheme]}://#{options.host}",
           client_id: options.client_id,
           nonce: stored_nonce
         )
