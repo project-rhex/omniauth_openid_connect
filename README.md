@@ -10,19 +10,19 @@ that is it does not support the discovery services of OpenID Connect.
 
 To use this module simply configure it as you would any other omniauth provider.
 
-provider :openid_connect, <host>, <client_id>, <client_secret>, {<additional_parms>}
+provider :openid_connect, hostname, clientid, client secret, {additional parms}
   
 
 To use multiple providers simply set the name of the provider in the additional
 params section.
 
 
-provider :openid_connect, "somecool.host.com", "my_cool_id", "my_cool_secret", {:name=>:cool_host}
-provider :openid_connect, "id.host.com", "my_id_id", "my_id_secret", {:name=>:idp_host}
+provider :openid_connect, "somecool.host.com", "myCoolId", "myCoolSecret", {:name=>:coolhost}
+provider :openid_connect, "id.host.com", "myId", "mySecret", {:name=>:idphost}
 
 This will setup a provider for each of the hosts mapped to different urls.
-/auth/cool_host 
-/auth/idp_host
+/auth/coolhost 
+/auth/idphost
 
 That's pretty much it!
 

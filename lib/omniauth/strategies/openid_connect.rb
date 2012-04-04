@@ -97,12 +97,10 @@ module OmniAuth
         super
       rescue  CallbackError => e
         fail!(:invalid_credentials, e)
-      rescue ::MultiJson::DecodeError => e
-        fail!(:invalid_response, e)
-      rescue ::Timeout::Error, ::Errno::ETIMEDOUT => e
-        fail!(:timeout, e)
       rescue ::SocketError => e
         fail!(:failed_to_connect, e)
+      rescue 
+        fail!(:error,e)  
       end
       
       
