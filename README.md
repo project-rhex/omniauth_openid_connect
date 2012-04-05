@@ -10,15 +10,17 @@ that is it does not support the discovery services of OpenID Connect.
 
 To use this module simply configure it as you would any other omniauth provider.
 
+```ruby
 provider :openid_connect, hostname, clientid, client secret, {additional parms}
-  
+```
 
 To use multiple providers simply set the name of the provider in the additional
 params section.
 
-
+```ruby
 provider :openid_connect, "somecool.host.com", "myCoolId", "myCoolSecret", {:name=>:coolhost}
 provider :openid_connect, "id.host.com", "myId", "mySecret", {:name=>:idphost}
+```
 
 This will setup a provider for each of the hosts mapped to different urls.
 /auth/coolhost 
