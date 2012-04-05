@@ -1,6 +1,5 @@
 #!/usr/bin/env rake
 require "bundler/gem_tasks"
-require 'rspec/core/rake_task'
 require 'rake/testtask'
 require 'rdoc/task'
 
@@ -11,3 +10,5 @@ Rake::TestTask.new(:test) do |t|
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
 end
+
+task :default => [:test]
