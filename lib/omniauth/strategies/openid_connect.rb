@@ -24,10 +24,9 @@ module OmniAuth
       option :authorization_endpoint, "/authorize"
       option :token_endpoint, '/token'
       option :check_id_endpoint, '/check_id'
-       
+      option :issuer, nil 
 
-     attr_accessor :access_token
-
+      attr_accessor :access_token
 
       def client_attributes
         options.client_options.merge({identifier:options.client_id,
@@ -50,8 +49,8 @@ module OmniAuth
 
       credentials do
         expires_at = (access_token.expires_in >= 0 ) ? access_token.expires_in.try(:from_now) : nil
-        hash = {'token' => access_token}
-        hash.merge!('refresh_token' => access_token.refresh_token) if expires_at && access_token.refresh_token
+        hash = {'token' => access_token.access_token}
+       # hash.merge!('refresh_token' => access_token.refresh_token) if expires_at && access_token.refresh_token
         hash.merge!('expires_at' => expires_at) if expires_at
         hash.merge!('expires' => !expires_at.nil?)
         hash
@@ -91,16 +90,14 @@ module OmniAuth
         end
 
         self.access_token = build_access_token
-        # binding.pry
-        #      self.access_token = access_token.refresh! if access_token.expires_in <=0
-     
+        #self.access_token = access_token.refresh! if access_token.expires_in <=0
         super
-      rescue  CallbackError => e
-        fail!(:invalid_credentials, e)
-      rescue ::SocketError => e
-        fail!(:failed_to_connect, e)
-      rescue 
-        fail!(:error,e)  
+        rescue  CallbackError => e
+          fail!(:invalid_credentials, e)
+        rescue ::SocketError => e
+          fail!(:failed_to_connect, e)
+        rescue 
+          fail!(:error,$!)  
       end
       
       
@@ -141,11 +138,15 @@ module OmniAuth
         access_token = client.access_token!
         id_token = check_id! access_token.id_token
         id_token.verify!(
-          issuer: "#{options.client_options[:scheme]}://#{options.host}",
+          issuer: issuer,
           client_id: options.client_id,
           nonce: stored_nonce
         )
         access_token
+      end
+      
+      def issuer
+        options.issuer || "#{options.client_options[:scheme]}://#{options.host}" + ((options.client_options[:port]) ? ":#{options.client_options[:port].to_s}" : "")
       end
      
       def check_id!(id_token)
@@ -190,3 +191,4 @@ module OmniAuth
   end
 end
 OmniAuth.config.add_camelization 'openid_connect', 'OpenIDConnect'
+OmniAuth.config.add_camelization 'open_id_connect', 'OpenIDConnect'
