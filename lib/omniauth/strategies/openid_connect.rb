@@ -26,7 +26,10 @@ module OmniAuth
       option :check_id_endpoint, '/check_id'
       option :issuer, nil 
 
-      attr_accessor :access_token
+     attr_accessor :access_token
+
+
+  
 
       def client_attributes
         options.client_options.merge({identifier:options.client_id,
@@ -35,7 +38,8 @@ module OmniAuth
          user_info_endpoint:  options.user_info_endpoint,
          authorization_endpoint: options.authorization_endpoint, 
          token_endpoint:  options.token_endpoint, 
-         check_id_endpoint:  options.check_id_endpoint})
+         check_id_endpoint:  options.check_id_endpoint}
+        )
       end     
     
       
@@ -85,13 +89,14 @@ module OmniAuth
 
 
       def callback_phase
+        
         if request.params['error'] || request.params['error_reason']
           raise CallbackError.new(request.params['error'], request.params['error_description'] || request.params['error_reason'], request.params['error_uri'])
         end
 
         self.access_token = build_access_token
-        #self.access_token = access_token.refresh! if access_token.expires_in <=0
         super
+        
         rescue  CallbackError => e
           fail!(:invalid_credentials, e)
         rescue ::SocketError => e
@@ -101,16 +106,10 @@ module OmniAuth
       end
       
       
-      uid{ raw_info['id'] || verified_email }
+      uid{ raw_info[:user_id]  }
 
         info do
-          prune!({
-            :name       => raw_info['name'],
-            :email      => verified_email,
-            :first_name => raw_info['given_name'],
-            :last_name  => raw_info['family_name'],
-            :image      => raw_info['picture']
-          })
+          prune!(raw_info.dup)
         end
 
        extra do
@@ -163,9 +162,6 @@ module OmniAuth
         end
       end
 
-      def verified_email
-        raw_info['verified_email'] ? raw_info['email'] : nil
-      end
       
       def new_nonce
         session[:nonce] = SecureRandom.hex(16)
