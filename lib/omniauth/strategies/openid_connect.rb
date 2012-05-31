@@ -3,13 +3,14 @@ require 'uri'
 require 'omniauth'
 require 'openid_connect'
 require 'timeout'
+require 'openssl'
+require 'open-uri'
 
 module OmniAuth
   module Strategies
     # Authentication strategy for authenticating with OpenIDConnect servers
     class OpenIDConnect
       include OmniAuth::Strategy
-
       args [:host, :client_id, :client_secret]
       option :name, "openid_connect"
       option :client_id, nil
@@ -24,8 +25,14 @@ module OmniAuth
       option :authorization_endpoint, "/authorize"
       option :token_endpoint, '/token'
       option :check_id_endpoint, '/check_id'
+      option :x509_url, nil
+      option :x509_encryption_url, nil
+      option :jwk_url,nil
+      option :jwk_encryption_url, nil
       option :issuer, nil 
-
+      option :scope, [:openid,:profile]
+      
+      
      attr_accessor :access_token
 
 
@@ -63,27 +70,27 @@ module OmniAuth
       def request_phase
         client.redirect_uri = callback_url
         uri =  client.authorization_uri(
-            response_type: :code,
-            nonce: new_nonce,
-            scope: :openid, #scope,
-            request: ::OpenIDConnect::RequestObject.new(
-              id_token: {
-                max_age: 10,
-                claims: {
-                  auth_time: nil,
-                  acr: {
-                    values: ['0', '1', '2']
-                  }
-                }
-              },
-              user_info: {
-                claims: {
-                  name: :required,
-                  email: :optional
-                }
-              }
-            ).to_jwt(client.secret, :HS256)
-          )    
+                   response_type: :code,
+                   nonce: new_nonce,
+                   scope: "openid profile", #scope,
+                   request: ::OpenIDConnect::RequestObject.new(
+                     id_token: {
+                       max_age: 10,
+                       claims: {
+                         auth_time: nil,
+                         acr: {
+                           values: ['0', '1', '2']
+                         }
+                       }
+                     },
+                     user_info: {
+                       claims: {
+                         name: :required,
+                         email: :optional
+                       }
+                     }
+                   ).to_jwt(client.secret, :HS256)
+                 )    
         redirect uri
       end
 
@@ -149,9 +156,10 @@ module OmniAuth
       end
      
       def check_id!(id_token)
+        
         raise ::OpenIDConnect::Exception.new('No ID Token was given.') if id_token.blank?
         ::OpenIDConnect::ResponseObject::IdToken.decode(
-          id_token, client
+          id_token, (get_idp_signing_key() || options[:client_secret])
         )
       end
       
@@ -171,7 +179,77 @@ module OmniAuth
         session.delete(:nonce)
       end
       
+      def get_idp_encryption_key
+        
+      end
       
+      def get_idp_signing_key
+        
+        key = nil
+        if x509_url
+          cert = parse_x509_key(x509_url)
+          key = cert.public_key
+        elsif jwk_url
+          key = parse_jwk_key(jwk_url)
+        end
+        key
+      end
+      
+      
+      def x509_url
+        return issuer+options["x509_url"]  if options["x509_url"] 
+      end
+      
+      def jwk_url
+        return issuer+options["jwk_url"]  if options["jwk_url"] 
+      end
+      
+      def parse_x509_key(url)
+        OpenSSL::X509::Certificate.new open(url).read
+      end
+      
+      def parse_jwk_key(url)
+        jwk_str = open(url).read
+        json = JSON.parse(jwk_str)
+        # there should be only 1 key
+        jwk = json["keys"][0]
+        key = nil
+        case jwk["alg"].downcase
+          when "rsa"
+             key = create_rsa_key(jwk["mod"],jwk["exp"])
+          when "ec"
+             key = create_ec_key(jwk["x"],jwk["y"],jwk["crv"])
+          else
+          
+        end
+        key
+      end
+      
+      
+      def create_request_object
+        
+      end
+      
+      def create_rsa_key(mod,exp)
+        key = OpenSSL::PKey::RSA.new
+        exponent = OpenSSL::BN.new decode(exp)
+        modulus = OpenSSL::BN.new decode(mod)
+        key.e = exponent
+        key.n = modulus
+        key
+      end
+      
+      
+      def create_ec_key(x,y,crv)
+        
+      end
+      
+      
+      def decode(str)
+         UrlSafeBase64.decode64(str).unpack('B*').first.to_i(2).to_s
+      end
+       
+
       # An error that is indicated in the OAuth 2.0 callback.
       # This could be a `redirect_uri_mismatch` or other
       class CallbackError < StandardError

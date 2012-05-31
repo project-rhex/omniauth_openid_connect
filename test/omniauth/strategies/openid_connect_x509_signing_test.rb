@@ -1,27 +1,19 @@
 require 'test_helper'
-class OpenIDConnectStrategyTest < Test::Unit::TestCase
+class OpenIDConnectX509SigningTest < Test::Unit::TestCase
   include Rack::Test::Methods
   include OmniAuth::Test::StrategyTestCase
   include WebMock::API
   
   def strategy
     # return the parameters to a Rack::Builder map call:
-    [OmniAuth::Strategies::OpenIDConnect,"localhost","my_id","my_s",{client_options:{scheme:"https", port:nil}}]
+    [OmniAuth::Strategies::OpenIDConnect,"localhost","my_id","my_s",{x509_url: "/x509", client_options:{scheme:"https", port:nil}}]
   end
 
   def setup
     # @strat = create_client("http://localhost", "my_id","my_secret" )
   end
   
-  def test_authorization_request
-    get '/auth/openid_connect'
-    assert last_response.status == 302
-    uri = URI.parse(last_response.headers["Location"])
-    assert uri.host == "localhost"
-    assert uri.scheme == "https"
-    assert uri.query.index("client_id=my_id"), "client id "
-  end
-  
+
   
   def test_callback
     
@@ -54,7 +46,7 @@ class OpenIDConnectStrategyTest < Test::Unit::TestCase
 
       )
       
-    stub_request(:get,'https://localhost/x509').to_return( :body=>File.read("./test/fixtures/keys/x509_pub.pem"))
+    stub_request(:get,'https://localhost/x509').to_return( :body=>File.read("./test/fixtures/keys/x509_cert.pem"))
 
     get '/auth/openid_connect/callback', {code:"Qcb0Orv1zh30vL1MPRsbm-diHiMwcLyZvn1arpZv-Jxf_11jnpEX3Tgfvk", state:"af0ifjsldkj"}
     
@@ -62,18 +54,8 @@ class OpenIDConnectStrategyTest < Test::Unit::TestCase
   end
   
 
-  
-  def test_user_info
-     # Mock a web request location that will return info for a user_info  request
-  end
-  
-  
-  def test_configuration
-     client = create_client("http://localhost", "my_id","my_secret" )
-     assert_equal "http://localhost", client.options.host
-     assert_equal "my_id", client.options.client_id
-     assert_equal "my_secret", client.options.client_secret  
-  end
+
+
   
   
   def create_id_token(nonce)
@@ -85,7 +67,7 @@ class OpenIDConnectStrategyTest < Test::Unit::TestCase
      iat: 1311280970
     })
    key = OpenSSL::PKey::RSA.new File.read("./test/fixtures/keys/x509.pem")
-   token.to_jwt("my_s",:HS256)
+   token.to_jwt(key)
   end
   
   

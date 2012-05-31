@@ -7,11 +7,12 @@ gem 'openid_connect', '0.2.0.alpha3'
 gem 'pry'
 gem 'pry-nav'
 gem 'rake'
+gem 'url_safe_base64'
 group :development, :test do
   gem 'guard'
   gem 'guard-rspec'
   gem 'guard-bundler'
   gem 'growl'
   gem 'rb-fsevent'
-  gem 'fakeweb'
+
 end

@@ -10,7 +10,7 @@ require 'omniauth_openid_connect'
 require 'webmock/test_unit'
 require 'pry'
 require 'webmock'
-require 'fakeweb'
+
 
 def create_client(host = "http://localhost",client_id ="my_id",secret="my_secret", args = {})
   OmniAuth::Strategies::OpenIDConnect.new(nil,host,client_id,secret, args)
