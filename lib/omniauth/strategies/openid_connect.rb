@@ -16,10 +16,7 @@ module OmniAuth
       option :client_id, nil
       option :client_secret, nil
       option :client_options, {scheme:"https", port:80}
-      option :authorize_params, {}
-      option :authorize_options, [:scope]
-      option :token_params, {}
-      option :token_options, []
+
       option :discover, false
       option :user_info_endpoint, "/user_info"
       option :authorization_endpoint, "/authorize"
@@ -29,8 +26,13 @@ module OmniAuth
       option :x509_encryption_url, nil
       option :jwk_url,nil
       option :jwk_encryption_url, nil
+      option :client_jwk_singing_key, nil
+      option :client_jwk_encryption_key, nil
+      option :client_x509_client_key, nil
+      option :client_x509_encryption_key, nil
+      option :client_signing_alg, :HS256
       option :issuer, nil 
-      option :scope, [:openid,:profile]
+      option :scope, "openid profile"
       
       
      attr_accessor :access_token
@@ -72,24 +74,8 @@ module OmniAuth
         uri =  client.authorization_uri(
                    response_type: :code,
                    nonce: new_nonce,
-                   scope: "openid profile", #scope,
-                   request: ::OpenIDConnect::RequestObject.new(
-                     id_token: {
-                       max_age: 10,
-                       claims: {
-                         auth_time: nil,
-                         acr: {
-                           values: ['0', '1', '2']
-                         }
-                       }
-                     },
-                     user_info: {
-                       claims: {
-                         name: :required,
-                         email: :optional
-                       }
-                     }
-                   ).to_jwt(client.secret, :HS256)
+                   scope: options[:scope], #scope,
+                   request: create_request_object()
                  )    
         redirect uri
       end
@@ -227,7 +213,15 @@ module OmniAuth
       
       
       def create_request_object
-        
+     
+        ::OpenIDConnect::RequestObject.new(
+           user_info: {
+             claims: {
+               name: :required,
+               email: :optional
+             }
+           }
+         ).to_jwt(key_or_secret, :HS256)
       end
       
       def create_rsa_key(mod,exp)
@@ -237,6 +231,21 @@ module OmniAuth
         key.e = exponent
         key.n = modulus
         key
+      end
+      
+      def key_or_secret
+        case options.client_signing_alg
+          when :HS256,:HS384, :HS512
+            return options.client_secret
+          when :RS256,:RS384,:RS512
+            if options.client_jwk_signing_key
+                return parse_jwk_key(options.client_jwk_signing_key)
+            elsif options.client_x509_signing_key
+                return parse_x509_key(options.client_x509_signing_key)
+            end
+          else
+        end
+            
       end
       
       
