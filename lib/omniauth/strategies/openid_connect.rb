@@ -183,11 +183,19 @@ module OmniAuth
       
       
       def x509_url
-        return issuer+options["x509_url"]  if options["x509_url"] 
+        return host_endpoint+options["x509_url"]  if options["x509_url"] 
       end
       
       def jwk_url
-        return issuer+options["jwk_url"]  if options["jwk_url"] 
+        return host_endpoint+options["jwk_url"]  if options["jwk_url"] 
+      end
+      
+      
+      def host_endpoint
+        port = options["client_options"]["port"]
+        scheme = options["client_options"]["scheme"] || "https"
+        
+        "#{scheme}://#{options.host}#{(port)? ':'+port : ""}"
       end
       
       def parse_x509_key(url)
