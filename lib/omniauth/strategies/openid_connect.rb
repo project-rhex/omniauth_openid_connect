@@ -74,8 +74,7 @@ module OmniAuth
         uri =  client.authorization_uri(
                    response_type: :code,
                    nonce: new_nonce,
-                   scope: options[:scope], #scope,
-                   request: create_request_object()
+                   scope: options[:scope]
                  )    
         redirect uri
       end
