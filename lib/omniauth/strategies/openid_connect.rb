@@ -194,7 +194,7 @@ module OmniAuth
         port = options["client_options"]["port"]
         scheme = options["client_options"]["scheme"] || "https"
         
-        "#{scheme}://#{options.host}#{(port)? ':'+port : ""}"
+        "#{scheme}://#{options.host}#{(port)? ':'+port.to_s : ""}"
       end
       
       def parse_x509_key(url)
