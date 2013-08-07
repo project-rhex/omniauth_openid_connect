@@ -113,7 +113,7 @@ module OmniAuth
         def raw_info
           unless @raw_info
            @raw_info = {}
-           user_info = access_token.user_info!
+           user_info = access_token.userinfo!
            user_info.all_attributes.each {|att| @raw_info[att] = user_info.send att.to_sym}
          end
           @raw_info
