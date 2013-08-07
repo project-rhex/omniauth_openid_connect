@@ -62,6 +62,7 @@ class OpenIDConnectJwkSigningTest < Test::Unit::TestCase
    token =  OpenIDConnect::ResponseObject::IdToken.new ({ iss: "https://localhost",
      user_id:  "248289761001",
      aud:  "my_id",
+     sub: "user_id",
      nonce:  "#{nonce}",
      exp:  9911281970,
      iat: 1311280970
