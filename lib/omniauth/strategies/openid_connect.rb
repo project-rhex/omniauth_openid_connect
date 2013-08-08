@@ -98,7 +98,7 @@ module OmniAuth
       end
       
       
-      uid{ raw_info[:user_id]  }
+      uid{ raw_info[:sub]  }
 
         info do
           prune!(raw_info.dup)
