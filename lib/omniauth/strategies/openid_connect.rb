@@ -18,7 +18,7 @@ module OmniAuth
       option :client_options, {scheme:"https", port:80}
 
       option :discover, false
-      option :user_info_endpoint, "/user_info"
+      option :userinfo_endpoint, "/userinfo"
       option :authorization_endpoint, "/authorize"
       option :token_endpoint, '/token'
       option :check_id_endpoint, '/check_id'
@@ -44,7 +44,7 @@ module OmniAuth
         options.client_options.merge({identifier:options.client_id,
          secret:options.client_secret,
          host:options.host,
-         user_info_endpoint:  options.user_info_endpoint,
+         userinfo_endpoint:  options.userinfo_endpoint,
          authorization_endpoint: options.authorization_endpoint, 
          token_endpoint:  options.token_endpoint, 
          check_id_endpoint:  options.check_id_endpoint}
@@ -113,8 +113,8 @@ module OmniAuth
         def raw_info
           unless @raw_info
            @raw_info = {}
-           user_info = access_token.userinfo!
-           user_info.all_attributes.each {|att| @raw_info[att] = user_info.send att.to_sym}
+           userinfo = access_token.userinfo!
+           userinfo.all_attributes.each {|att| @raw_info[att] = userinfo.send att.to_sym}
          end
           @raw_info
         end
@@ -224,7 +224,7 @@ module OmniAuth
       def create_request_object
      
         ::OpenIDConnect::RequestObject.new(
-           user_info: {
+           userinfo: {
              claims: {
                name: :required,
                email: :optional

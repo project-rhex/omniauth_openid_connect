@@ -41,7 +41,7 @@ class OpenIDConnectStrategyTest < Test::Unit::TestCase
       )
       
       
-     stub_request(:get,'https://localhost/user_info').to_return( :body=><<-eos
+     stub_request(:get,'https://localhost/userinfo').to_return( :body=><<-eos
      {
       "user_id": "248289761001",
       "name": "Jane Doe",
@@ -63,8 +63,8 @@ class OpenIDConnectStrategyTest < Test::Unit::TestCase
   
 
   
-  def test_user_info
-     # Mock a web request location that will return info for a user_info  request
+  def test_userinfo
+     # Mock a web request location that will return info for a userinfo  request
   end
   
   

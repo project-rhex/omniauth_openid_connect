@@ -33,7 +33,7 @@ class OpenIDConnectX509SigningTest < Test::Unit::TestCase
       )
       
       
-     stub_request(:get,'https://localhost/user_info').to_return( :body=><<-eos
+     stub_request(:get,'https://localhost/userinfo').to_return( :body=><<-eos
      {
       "user_id": "248289761001",
       "name": "Jane Doe",
