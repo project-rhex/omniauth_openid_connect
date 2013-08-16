@@ -33,7 +33,7 @@ class OpenIDConnectJwkSigningTest < Test::Unit::TestCase
       )
       
       
-     stub_request(:get,'https://localhost/user_info').to_return( :body=><<-eos
+     stub_request(:get,'https://localhost/userinfo').to_return( :body=><<-eos
      {
       "user_id": "248289761001",
       "name": "Jane Doe",
@@ -62,6 +62,7 @@ class OpenIDConnectJwkSigningTest < Test::Unit::TestCase
    token =  OpenIDConnect::ResponseObject::IdToken.new ({ iss: "https://localhost",
      user_id:  "248289761001",
      aud:  "my_id",
+     sub: "user_id",
      nonce:  "#{nonce}",
      exp:  9911281970,
      iat: 1311280970
