@@ -31,27 +31,27 @@ module OmniAuth
       option :client_x509_client_key, nil
       option :client_x509_encryption_key, nil
       option :client_signing_alg, :HS256
-      option :issuer, nil 
+      option :issuer, nil
       option :scope, "openid profile"
-      
-      
+
+
      attr_accessor :access_token
 
 
-  
+
 
       def client_attributes
         options.client_options.merge({identifier:options.client_id,
          secret:options.client_secret,
          host:options.host,
-         user_info_endpoint:  options.user_info_endpoint,
-         authorization_endpoint: options.authorization_endpoint, 
-         token_endpoint:  options.token_endpoint, 
+         userinfo_endpoint:  options.user_info_endpoint,
+         authorization_endpoint: options.authorization_endpoint,
+         token_endpoint:  options.token_endpoint,
          check_id_endpoint:  options.check_id_endpoint}
         )
-      end     
-    
-      
+      end
+
+
       def client
         @client ||= ::OpenIDConnect::Client.new(client_attributes)
       end
@@ -75,29 +75,29 @@ module OmniAuth
                    response_type: :code,
                    nonce: new_nonce,
                    scope: options[:scope]
-                 )    
+                 )
         redirect uri
       end
 
 
       def callback_phase
-        
+
         if request.params['error'] || request.params['error_reason']
           raise CallbackError.new(request.params['error'], request.params['error_description'] || request.params['error_reason'], request.params['error_uri'])
         end
 
         self.access_token = build_access_token
         super
-        
+
         rescue  CallbackError => e
           fail!(:invalid_credentials, e)
         rescue ::SocketError => e
           fail!(:failed_to_connect, e)
-        rescue 
-          fail!(:error,$!)  
+        rescue
+          fail!(:error,$!)
       end
-      
-      
+
+
       uid{ raw_info[:user_id]  }
 
         info do
@@ -113,17 +113,17 @@ module OmniAuth
         def raw_info
           unless @raw_info
            @raw_info = {}
-           user_info = access_token.user_info!
+           user_info = access_token.userinfo!
            user_info.all_attributes.each {|att| @raw_info[att] = user_info.send att.to_sym}
          end
           @raw_info
         end
 
- 
+
       protected
 
       def build_access_token
-        code = request.params['code']      
+        code = request.params['code']
         client.redirect_uri = callback_url
         client.authorization_code = code
         access_token = client.access_token!
@@ -135,19 +135,19 @@ module OmniAuth
         )
         access_token
       end
-      
+
       def issuer
         options.issuer || "#{options.client_options[:scheme]}://#{options.host}" + ((options.client_options[:port]) ? ":#{options.client_options[:port].to_s}" : "")
       end
-     
+
       def check_id!(id_token)
-        
+
         raise ::OpenIDConnect::Exception.new('No ID Token was given.') if id_token.blank?
         ::OpenIDConnect::ResponseObject::IdToken.decode(
           id_token, (get_idp_signing_key() || options[:client_secret])
         )
       end
-      
+
       def prune!(hash)
         hash.delete_if do |_, value|
           prune!(value) if value.is_a?(Hash)
@@ -155,7 +155,7 @@ module OmniAuth
         end
       end
 
-      
+
       def new_nonce
         session[:nonce] = SecureRandom.hex(16)
       end
@@ -163,13 +163,13 @@ module OmniAuth
       def stored_nonce
         session.delete(:nonce)
       end
-      
+
       def get_idp_encryption_key
-        
+
       end
-      
+
       def get_idp_signing_key
-        
+
         key = nil
         if x509_url
           cert = parse_x509_key(x509_url)
@@ -179,48 +179,48 @@ module OmniAuth
         end
         key
       end
-      
-      
+
+
       def x509_url
-        return host_endpoint+options["x509_url"]  if options["x509_url"] 
+        return host_endpoint+options["x509_url"]  if options["x509_url"]
       end
-      
+
       def jwk_url
-        return host_endpoint+options["jwk_url"]  if options["jwk_url"] 
+        return host_endpoint+options["jwk_url"]  if options["jwk_url"]
       end
-      
-      
+
+
       def host_endpoint
         port = options["client_options"]["port"]
         scheme = options["client_options"]["scheme"] || "https"
-        
+
         "#{scheme}://#{options.host}#{(port)? ':'+port.to_s : ""}"
       end
-      
+
       def parse_x509_key(url)
         OpenSSL::X509::Certificate.new open(url).read
       end
-      
+
       def parse_jwk_key(url)
         jwk_str = open(url).read
         json = JSON.parse(jwk_str)
         # there should be only 1 key
         jwk = json["keys"][0]
         key = nil
-        case jwk["alg"].downcase
-          when "rsa"
-             key = create_rsa_key(jwk["mod"],jwk["exp"])
+        case jwk["kty"].downcase
+        when "rsa"
+             key = create_rsa_key(jwk["n"],jwk["e"])
           when "ec"
              key = create_ec_key(jwk["x"],jwk["y"],jwk["crv"])
           else
-          
+
         end
         key
       end
-      
-      
+
+
       def create_request_object
-     
+
         ::OpenIDConnect::RequestObject.new(
            user_info: {
              claims: {
@@ -230,7 +230,7 @@ module OmniAuth
            }
          ).to_jwt(key_or_secret, :HS256)
       end
-      
+
       def create_rsa_key(mod,exp)
         key = OpenSSL::PKey::RSA.new
         exponent = OpenSSL::BN.new decode(exp)
@@ -239,7 +239,7 @@ module OmniAuth
         key.n = modulus
         key
       end
-      
+
       def key_or_secret
         case options.client_signing_alg
           when :HS256,:HS384, :HS512
@@ -252,19 +252,19 @@ module OmniAuth
             end
           else
         end
-            
+
       end
-      
-      
+
+
       def create_ec_key(x,y,crv)
-        
+
       end
-      
-      
+
+
       def decode(str)
          UrlSafeBase64.decode64(str).unpack('B*').first.to_i(2).to_s
       end
-       
+
 
       # An error that is indicated in the OAuth 2.0 callback.
       # This could be a `redirect_uri_mismatch` or other

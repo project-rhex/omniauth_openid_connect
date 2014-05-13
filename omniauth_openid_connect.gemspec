@@ -4,12 +4,12 @@ require File.expand_path('../lib/omniauth/openid_connect/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.add_dependency 'omniauth', '~> 1.0'
   gem.add_dependency 'rack-oauth2'
-  gem.add_dependency 'openid_connect', '0.2.0.alpha3'
+  gem.add_dependency 'openid_connect', '= 0.7.3'
 
   gem.add_development_dependency 'rack-test'
   gem.add_development_dependency 'webmock'
   gem.add_development_dependency 'simplecov'
-  
+
 
   gem.authors       = ["Rob Dingwell"]
   gem.email         = ["rob.dingwell@gmail.com"]
