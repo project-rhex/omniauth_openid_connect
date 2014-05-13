@@ -2,12 +2,12 @@ $:.unshift File.expand_path('..', __FILE__)
 $:.unshift File.expand_path('../../lib', __FILE__)
 require 'simplecov'
 SimpleCov.start
-require 'test/unit'
+require 'minitest/autorun'
 require 'rack/test'
 require 'webmock'
 require 'omniauth'
 require 'omniauth_openid_connect'
-require 'webmock/test_unit'
+require 'webmock/minitest'
 require 'pry'
 require 'webmock'
 

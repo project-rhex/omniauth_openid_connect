@@ -1,9 +1,9 @@
 require 'test_helper'
-class OpenIDConnectX509SigningTest < Test::Unit::TestCase
+class OpenIDConnectX509SigningTest < MiniTest::Test
   include Rack::Test::Methods
   include OmniAuth::Test::StrategyTestCase
   include WebMock::API
-  
+
   def strategy
     # return the parameters to a Rack::Builder map call:
     [OmniAuth::Strategies::OpenIDConnect,"localhost","my_id","my_s",{x509_url: "/x509", client_options:{scheme:"https", port:nil}}]
@@ -12,11 +12,11 @@ class OpenIDConnectX509SigningTest < Test::Unit::TestCase
   def setup
     # @strat = create_client("http://localhost", "my_id","my_secret" )
   end
-  
 
-  
+
+
   def test_callback
-    
+
     get '/auth/openid_connect'
     @nonce = session[:nonce]
 
@@ -31,9 +31,9 @@ class OpenIDConnectX509SigningTest < Test::Unit::TestCase
       eos
 
       )
-      
-      
-     stub_request(:get,'https://localhost/user_info').to_return( :body=><<-eos
+
+
+     stub_request(:get,'https://localhost/user_info?schema=openid').to_return( :body=><<-eos
      {
       "user_id": "248289761001",
       "name": "Jane Doe",
@@ -45,30 +45,31 @@ class OpenIDConnectX509SigningTest < Test::Unit::TestCase
       eos
 
       )
-      
+
     stub_request(:get,'https://localhost/x509').to_return( :body=>File.read("./test/fixtures/keys/x509_cert.pem"))
 
     get '/auth/openid_connect/callback', {code:"Qcb0Orv1zh30vL1MPRsbm-diHiMwcLyZvn1arpZv-Jxf_11jnpEX3Tgfvk", state:"af0ifjsldkj"}
-    
-    
+
+
   end
-  
 
 
 
-  
-  
+
+
+
   def create_id_token(nonce)
    token =  OpenIDConnect::ResponseObject::IdToken.new ({ iss: "https://localhost",
      user_id:  "248289761001",
      aud:  "my_id",
      nonce:  "#{nonce}",
+     sub: "abc.123",
      exp:  9911281970,
      iat: 1311280970
     })
    key = OpenSSL::PKey::RSA.new File.read("./test/fixtures/keys/x509.pem")
    token.to_jwt(key)
   end
-  
-  
+
+
 end
